@@ -14,6 +14,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:     
     Dwebework.Config
+    Dwebework.Cookie
     Dwebework.Database.Schema
     Dwebework.Database.PostgreSQL
     Dwebework.Distribution
@@ -28,11 +29,14 @@ library
     base >=4.8 && <4.9,
     bytestring,
     Cabal,
+    cookie,
+    cryptonite,
     directory,
     fast-logger,
     filepath,
     HDBC,
     http-types,
+    memory,
     network,
     network-uri,
     parsec,
