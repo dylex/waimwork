@@ -43,6 +43,7 @@ library
     postgresql-typed,
     process,
     resource-pool,
+    template-haskell,
     text,
     time,
     transformers,

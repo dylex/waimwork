@@ -1,17 +1,38 @@
 -- |Database interface based on postgresql-typed
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Dwebework.Database.PostgreSQL
-  ( configPGDatabase
+  (
+  -- * Connection management
+    configPGDatabase
   , DBPool
   , DBConn
   , initDB
   , finiDB
   , withDB
+  -- * Template Haskell interface
+  , useTDBConfig
+  -- * Convenience wrappers around "Database.PostgreSQL.Typed"
+  , pgRunQuery
+  , pgExecute
+  , pgExecuteSimple
+  , pgExecute1
+  , pgExecute1'
+  , pgExecute_
+  , pgQuery
+  , pgQuery1
+  , pgQuery1'
+  , pgTransaction
   ) where
 
+import Control.Monad (unless)
+import qualified Data.ByteString.Lazy as BSL
 import Data.Maybe (fromMaybe, isJust)
 import Data.Pool (Pool, withResource, createPool, destroyAllResources)
-import Database.PostgreSQL.Typed (PGDatabase(..), defaultPGDatabase, PGConnection, pgConnect, pgDisconnect)
+import Database.PostgreSQL.Typed.Protocol (PGDatabase(..), defaultPGDatabase, PGConnection, pgConnect, pgDisconnect, pgSimpleQueries_, pgTransaction)
+import Database.PostgreSQL.Typed.Query (PGQuery, PGSimpleQuery, pgRunQuery, pgExecute, pgQuery)
+import Database.PostgreSQL.Typed.TH (useTPGDatabase)
+import qualified Language.Haskell.TH as TH
 import Network (PortID(..))
 
 import qualified Dwebework.Config as C
@@ -73,3 +94,42 @@ finiDB = destroyAllResources . pgPool
 withDB :: DBPool -> (DBConn -> IO a) -> IO a
 withDB = withResource . pgPool
 
+-- |Call 'useTPGDatabase' using database configuration from a file under the given config key.
+useTDBConfig :: FilePath -> C.Path -> TH.DecsQ
+useTDBConfig conf key = useTPGDatabase . configPGDatabase . C.get key =<< TH.runIO (C.load conf)
+
+-- |Specialized version of 'pgExecute' for convenient use of the "IsString" instance
+pgExecuteSimple :: DBConn -> PGSimpleQuery () -> IO Int
+pgExecuteSimple = pgExecute
+
+-- |'dbExecute' a query that expects at most one affected row, applying 'toEnum' to the result or failing
+pgExecute1 :: (PGQuery q (), Show q) => DBConn -> q -> IO Bool
+pgExecute1 c q = do
+  r <- pgExecute c q
+  case r of
+    0 -> return False
+    1 -> return True
+    _ -> fail $ "dbExecute1 " ++ show q ++ ": " ++ show r ++ " rows"
+
+-- |'dbExecute1' but fail on false
+pgExecute1' :: (PGQuery q (), Show q) => DBConn -> q -> IO ()
+pgExecute1' c q = do
+  r <- pgExecute1 c q
+  unless r $ fail $ "dbExecute1' " ++ show q ++ ": failed"
+
+-- |'pgSimpleQueries_'
+pgExecute_ :: DBConn -> BSL.ByteString -> IO ()
+pgExecute_ = pgSimpleQueries_
+
+-- |'dbQuery' a query that expects at most one result, or fail
+pgQuery1 :: (PGQuery q a, Show q) => DBConn -> q -> IO (Maybe a)
+pgQuery1 c q = do
+  r <- pgQuery c q
+  case r of
+    [] -> return $ Nothing
+    [x] -> return $ Just x
+    _ -> fail $ "dbQuery1 " ++ show q ++ ": too many results"
+
+-- |'dbQuery' a query that expects exactly one result, or fail
+pgQuery1' :: (PGQuery q a, Show q) => DBConn -> q -> IO a
+pgQuery1' c q = maybe (fail $ "dbQuery1' " ++ show q ++ ": no results") return =<< pgQuery1 c q
