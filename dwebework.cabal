@@ -1,7 +1,7 @@
 name:                dwebework
 version:             0.1
 synopsis:            Poorly curated web framework and utilities
-description:         
+description:         A set of components that might be useful as part of a web framework, maybe, primarily based on wai/warp and PostgreSQL.
 license:             Apache-2.0
 license-file:        LICENSE
 author:              Dylan Simon
@@ -19,6 +19,7 @@ library
     Dwebework.Database.PostgreSQL
     Dwebework.Distribution
     Dwebework.Log
+    Dwebework.Response
     Dwebework.Result
     Dwebework.Warp
   other-modules:       
@@ -27,6 +28,7 @@ library
   build-depends:       
     aeson,
     base >=4.8 && <4.9,
+    blaze-html,
     bytestring,
     Cabal,
     cookie,
