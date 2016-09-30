@@ -31,7 +31,7 @@ module Dwebework.Config
   , keyPath
   , Value(..)
   , ConfigError
-  , ConfigMap
+  , ConfigMap(..)
   -- * Construction and access
   , Config
   , configMap
@@ -116,7 +116,8 @@ data Value
   deriving (Typeable, Eq, Show)
 
 -- |A single layer of configuration
-type ConfigMap = HM.HashMap BS.ByteString Value
+newtype ConfigMap = ConfigMap { unConfigMap :: HM.HashMap Key Value }
+  deriving (Typeable, Eq, Monoid, Show)
 
 -- |A loaded configuration or sub-configuration
 data Config = Config
@@ -136,37 +137,37 @@ unionValue p v1 v2
   | otherwise = throw $ ConflictError{ errorPath = p, errorValue1 = v1, errorValue2 = v2 }
 
 unionConfig :: Path -> ConfigMap -> ConfigMap -> ConfigMap
-unionConfig p = HM.foldrWithKey $ \k -> HM.insertWith (flip $ unionValue (pathSnoc p k)) k
+unionConfig p (ConfigMap m1) (ConfigMap m2) = ConfigMap $ HM.foldrWithKey (\k -> HM.insertWith (flip $ unionValue (pathSnoc p k)) k) m1 m2
 
 -- |Merge two configs, throwing 'ConflictError' on conflicts
 instance Monoid Config where
-  mempty = topConfig HM.empty
+  mempty = topConfig mempty
   Config (Path p1) m1 `mappend` Config (Path p2) m2 = Config p m where
     (p', (p1', p2')) = cpfx p1 p2
     p = Path p'
     m = unionConfig p (nest m1 p1') (nest m2 p2')
     cpfx (a:al) (b:bl) | a == b = first (a :) $ cpfx al bl
     cpfx al bl = ([], (al, bl))
-    nest = foldr (\k -> HM.singleton k . Sub)
+    nest = foldr (\k -> ConfigMap . HM.singleton k . Sub)
 
 lookup :: Path -> ConfigMap -> Value
 lookup (Path []) m = Sub m
-lookup (Path [k]) m | Just v <- HM.lookup k m = v
-lookup (Path (k:l)) m | Just (Sub km) <- HM.lookup k m = lookup (Path l) km
+lookup (Path [k]) (ConfigMap m) | Just v <- HM.lookup k m = v
+lookup (Path (k:l)) (ConfigMap m) | Just (Sub km) <- HM.lookup k m = lookup (Path l) km
 lookup _ _ = Empty
 
 parser :: P.Parser ConfigMap
-parser = whiteSpace *> block mempty HM.empty <* P.eof where
-  block p m = (block p =<< pair p m) <|> return m
+parser = whiteSpace *> block mempty mempty <* P.eof where
+  block p m = (block p =<< pair p m) <|> return (ConfigMap m)
   pair p m = do
     ks <- identifier P.<?> "key"
     let k = BSC.pack ks
         kp = pathSnoc p k
     km <- case HM.lookupDefault Empty k m of
       Empty -> return Nothing
-      Sub km -> return $ Just km
+      Sub (ConfigMap km) -> return $ Just km
       _ -> fail $ "Duplicate key value: " ++ show kp
-    kv <- lexeme dot *> (Sub <$> pair kp (fold km)) <|> rhs kp km
+    kv <- lexeme dot *> (Sub . ConfigMap <$> pair kp (fold km)) <|> rhs kp km
     return $ HM.insert k kv m
   rhs p Nothing = sub p HM.empty <|>
     lexeme (P.char '=') *> val
@@ -213,7 +214,7 @@ instance Configurable Value where
 
 instance Configurable ConfigMap where
   config (Sub m) = Just m
-  config Empty = Just HM.empty
+  config Empty = Just mempty
   config _ = Nothing
 
 instance Configurable Config where
@@ -279,8 +280,8 @@ instance JSON.ToJSON Config where
   toEncoding = JSON.toEncoding . configMap
 
 instance JSON.ToJSON ConfigMap where
-  toJSON = JSON.object . map (TE.decodeUtf8 *** JSON.toJSON) . HM.toList
-  toEncoding = JSON.pairs . HM.foldrWithKey (\k v -> (TE.decodeUtf8 k JSON..= v <>)) mempty
+  toJSON = JSON.object . map (TE.decodeUtf8 *** JSON.toJSON) . HM.toList . unConfigMap
+  toEncoding = JSON.pairs . HM.foldrWithKey (\k v -> (TE.decodeUtf8 k JSON..= v <>)) mempty . unConfigMap
 
 instance JSON.ToJSON Value where
   toJSON Empty = JSON.Null
