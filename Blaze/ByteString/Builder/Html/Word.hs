@@ -1,6 +1,6 @@
--- 'W.Write's and 'B.Builder's for serializing 'Word8' characters and 'ByteString's
--- that have already been appropriately encoded into HTML by escaping basic
--- ASCII character references but leaving other bytes untouched.
+-- |'W.Write's and 'B.Builder's for serializing 'Word8' characters and
+-- 'ByteString's that have already been appropriately encoded into HTML by
+-- escaping basic ASCII character references but leaving other bytes untouched.
 module Blaze.ByteString.Builder.Html.Word
   ( 
     -- * Writing HTML escaped bytes to a buffer
@@ -70,7 +70,7 @@ fromHtmlEscapedLazyByteString = P.primMapLazyByteStringBounded wordHtmlEscaped
 fromHtmlEscapedText :: T.Text -> B.Builder
 fromHtmlEscapedText = TE.encodeUtf8BuilderEscaped wordHtmlEscaped
 
- -- | /O(n)/. Serialize a HTML escaped lazy 'TL.Text' using the UTF-8 encoding.
+-- | /O(n)/. Serialize a HTML escaped lazy 'TL.Text' using the UTF-8 encoding.
 -- This is identical to 'Blaze.ByteString.Builder.Html.Utf8.fromHtmlEscapedLazyText' but more than three times as fast.
 fromHtmlEscapedLazyText :: TL.Text -> B.Builder
 fromHtmlEscapedLazyText = TLE.encodeUtf8BuilderEscaped wordHtmlEscaped
