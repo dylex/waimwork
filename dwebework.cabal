@@ -76,10 +76,10 @@ benchmark benchmark-blaze
     random,
     criterion
 
-test-suite test-blaze
+test-suite test
   type: exitcode-stdio-1.0
   hs-source-dirs: test
-  main-is: blaze.hs
+  main-is: Main.hs
   default-language: Haskell2010
   ghc-options: -Wall
   build-depends:
@@ -87,6 +87,10 @@ test-suite test-blaze
     blaze-builder,
     blaze-markup,
     bytestring,
+    cookie,
+    cryptonite,
+    http-types,
     text,
+    wai,
     dwebework,
     QuickCheck

@@ -47,10 +47,11 @@ hmac = HMAC.hmac
 hmac0 :: HMAC.HMAC Hash.Skein256_224
 hmac0 = hmac (Secret "") ""
 
-hmacLength, nonceBytes, nonceLength :: Int
+hmacBytes, hmacLength, nonceBytes, nonceLength :: Int
+hmacBytes = BS.length $ BA.convert hmac0
 hmacLength = BS.length $ encode hmac0
 nonceBytes = 6
-nonceLength = BA.length $ encode $ (BA.zero nonceBytes :: BS.ByteString) -- 8
+nonceLength = BS.length $ encode $ (BA.zero nonceBytes :: BS.ByteString) -- 8
 
 sign :: EntropyPool -> Secret -> BS.ByteString -> IO BS.ByteString
 sign rnd key msg = do
@@ -59,12 +60,10 @@ sign rnd key msg = do
 
 unSign :: Secret -> BS.ByteString -> Maybe BS.ByteString
 unSign key sigmsg = do
-  nonce <- decode nonce64
+  let (signonce, msg) = BS.splitAt (hmacLength + nonceLength) sigmsg
+  (sig, nonce) <- BS.splitAt hmacBytes <$> decode signonce
   guard $ BA.constEq sig $ hmac key (msg <> nonce)
   return msg
-  where
-  (sig, noncemsg) = BS.splitAt hmacLength sigmsg
-  (nonce64, msg) = BS.splitAt nonceLength noncemsg
 
 -- |Generate a header to set a cookie.
 setCookie :: Cook.SetCookie -> Header
@@ -72,14 +71,14 @@ setCookie sc = ("set-cookie", BSL.toStrict $ BSB.toLazyByteString $ Cook.renderS
 
 -- |Generate a header to set a cookie with the given name, expiration time, and value, signing (but not obscuring) the value with the given secret first.
 -- 'getSignedCookie' should return the same value if given the same secret.
-setSignedCookie :: EntropyPool -> Secret -> Wai.Request -> BS.ByteString -> UTCTime -> BS.ByteString -> IO Header
+setSignedCookie :: EntropyPool -> Secret -> Wai.Request -> BS.ByteString -> Maybe UTCTime -> BS.ByteString -> IO Header
 setSignedCookie rnd key req name ex val = do
   val' <- sign rnd key val
   return $ setCookie Cook.def
     { Cook.setCookieName = name
     , Cook.setCookieValue = val'
     , Cook.setCookiePath = Just "/"
-    , Cook.setCookieExpires = Just ex
+    , Cook.setCookieExpires = ex
     , Cook.setCookieSecure = Wai.isSecure req
     , Cook.setCookieHttpOnly = True
     }
