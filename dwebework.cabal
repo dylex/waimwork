@@ -22,12 +22,14 @@ library
     Dwebework.Response
     Dwebework.Result
     Dwebework.Warp
+    Blaze.ByteString.Builder.Html.Word
   other-modules:       
-  default-language:    Haskell2010
+  default-language: Haskell2010
   ghc-options: -Wall
   build-depends:       
     aeson,
-    base >=4.8 && <4.9,
+    base >= 4.8 && < 4.9,
+    blaze-builder,
     blaze-html,
     bytestring,
     Cabal,
@@ -54,3 +56,32 @@ library
     wai,
     warp >= 3,
     warp-tls
+
+benchmark benchmark-blaze
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmark
+  main-is: blaze.hs
+  default-language: Haskell2010
+  ghc-options: -Wall
+  build-depends:
+    base,
+    blaze-builder,
+    bytestring,
+    text,
+    dwebework,
+    random,
+    criterion
+
+test-suite test-blaze
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is: blaze.hs
+  default-language: Haskell2010
+  ghc-options: -Wall
+  build-depends:
+    base,
+    blaze-builder,
+    bytestring,
+    text,
+    dwebework,
+    QuickCheck
