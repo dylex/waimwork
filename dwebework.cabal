@@ -29,7 +29,7 @@ library
   ghc-options: -Wall
   build-depends:       
     aeson,
-    base >= 4.8 && < 4.9,
+    base >= 4.8 && < 5,
     blaze-builder,
     blaze-html,
     blaze-markup,
