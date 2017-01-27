@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -- |Cryptographically signed cookies.
 -- Using a sufficiently long secret key on the server, this can prevent cookies from being tampered with by the client.  It does not, prevent users (or others snooping on cookies) from seeing the value in the cookie, just from channging it.  Sensitive or authentication data should probably be wrapped in an additional layer of indirection.
-module Dwebework.Cookie
+module Waimwork.Cookie
   ( Secret(..)
   , initSecret
   , setSignedCookie
@@ -25,7 +25,7 @@ import Network.HTTP.Types.Header (Header, hCookie)
 import qualified Network.Wai as Wai
 import qualified Web.Cookie as Cook
 
-import qualified Dwebework.Config as C
+import qualified Waimwork.Config as C
 
 -- |A persistant random byte sequence which should be kept private.
 newtype Secret = Secret{ secretKey :: BS.ByteString }

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- |A simple logging system for web servers.
 -- Provides a wrapper around fast-logger for two log files, access and messages, as well as a way to write simple apache-style access logs.
-module Dwebework.Log
+module Waimwork.Log
   ( Logs
   , initLogs
   , finiLogs
@@ -27,7 +27,7 @@ import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
 import System.Log.FastLogger
 
-import qualified Dwebework.Config as C
+import qualified Waimwork.Config as C
 
 -- |Handles to log files.
 data Logs = Logs

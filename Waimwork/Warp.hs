@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
--- |Wrappers around 'Warp.run' that use dynamic "Dwebework.Config" configuration.
-module Dwebework.Warp
+-- |Wrappers around 'Warp.run' that use dynamic "Waimwork.Config" configuration.
+module Waimwork.Warp
   ( runWarpSettings
   , runWarp
   ) where
@@ -14,9 +14,9 @@ import qualified Network.Wai.Handler.Warp as Warp
 import qualified Network.Wai.Handler.WarpTLS as WarpTLS
 #endif
 
-import qualified Dwebework.Config as C
-import Dwebework.Log (Logs, accessLogMiddleware, logError)
-import Dwebework.Result (resultMiddleware)
+import qualified Waimwork.Config as C
+import Waimwork.Log (Logs, accessLogMiddleware, logError)
+import Waimwork.Result (resultMiddleware)
 
 -- |Run warp according to the given configuration settings.
 -- Supports the following keys for warp settings:

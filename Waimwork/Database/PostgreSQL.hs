@@ -1,7 +1,7 @@
 -- |Database interface based on postgresql-typed
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
-module Dwebework.Database.PostgreSQL
+module Waimwork.Database.PostgreSQL
   (
   -- * Connection management
     configPGDatabase
@@ -35,7 +35,7 @@ import Database.PostgreSQL.Typed.TH (useTPGDatabase)
 import qualified Language.Haskell.TH as TH
 import Network (PortID(..))
 
-import qualified Dwebework.Config as C
+import qualified Waimwork.Config as C
 
 -- |Create 'PGDatabase' connection information from a configuration section.
 -- Uses the following configuration keys and defaults:

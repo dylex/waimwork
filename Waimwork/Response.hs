@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
 -- |Convenient ways to construct 'Response' objects from various data types.
-module Dwebework.Response
+module Waimwork.Response
   ( ResponseData(..)
   , okResponse
   ) where

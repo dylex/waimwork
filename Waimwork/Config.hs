@@ -22,7 +22,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeSynonymInstances #-}
-module Dwebework.Config
+module Waimwork.Config
   (
   -- * Configuration data representation
     Key

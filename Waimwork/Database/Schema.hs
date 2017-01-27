@@ -1,6 +1,6 @@
 -- |Simple forward-only schema migration management
 {-# LANGUAGE OverloadedStrings #-}
-module Dwebework.Database.Schema
+module Waimwork.Database.Schema
   ( updateDBSchema
   ) where
 

@@ -1,5 +1,5 @@
 -- |Additions to "Text.Blaze" for pre-escaped 'BS.ByteString's, 'BSB.Builder's, and "Web.Route.Invertible".
-module Dwebework.Blaze
+module Waimwork.Blaze
   ( -- * Converting values to markup
     unsafeBuilder
   , builder

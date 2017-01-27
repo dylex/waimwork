@@ -1,5 +1,5 @@
 -- |Cabal package distribution-related utilities
-module Dwebework.Distribution
+module Waimwork.Distribution
   ( setGitVersion
   , preBuildRun
   ) where

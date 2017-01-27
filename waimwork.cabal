@@ -1,6 +1,6 @@
-name:                dwebework
+name:                waimwork
 version:             0.1
-synopsis:            Poorly curated web framework and utilities
+synopsis:            Poorly curated wai-based web framework and utilities
 description:         A set of components that might be useful as part of a web framework, maybe, primarily based on wai/warp and PostgreSQL.
 license:             Apache-2.0
 license-file:        LICENSE
@@ -14,16 +14,16 @@ cabal-version:       >=1.10
 library
   exposed-modules:     
     Blaze.ByteString.Builder.Html.Word
-    Dwebework.Blaze
-    Dwebework.Config
-    Dwebework.Cookie
-    Dwebework.Database.Schema
-    Dwebework.Database.PostgreSQL
-    Dwebework.Distribution
-    Dwebework.Log
-    Dwebework.Response
-    Dwebework.Result
-    Dwebework.Warp
+    Waimwork.Blaze
+    Waimwork.Config
+    Waimwork.Cookie
+    Waimwork.Database.Schema
+    Waimwork.Database.PostgreSQL
+    Waimwork.Distribution
+    Waimwork.Log
+    Waimwork.Response
+    Waimwork.Result
+    Waimwork.Warp
   other-modules:       
   default-language: Haskell2010
   ghc-options: -Wall
@@ -72,7 +72,7 @@ benchmark benchmark-blaze
     blaze-markup,
     bytestring,
     text,
-    dwebework,
+    waimwork,
     random,
     criterion
 
@@ -92,5 +92,5 @@ test-suite test
     http-types,
     text,
     wai,
-    dwebework,
+    waimwork,
     QuickCheck

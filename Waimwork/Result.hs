@@ -1,5 +1,5 @@
 -- |An abort-like way to interrupt a wai application with an early result, in IO.
-module Dwebework.Result
+module Waimwork.Result
   ( result
   , unsafeResult
   , runResult
