@@ -20,6 +20,7 @@ library
     Waimwork.Database.Schema
     Waimwork.Database.PostgreSQL
     Waimwork.Distribution
+    Waimwork.HTTP
     Waimwork.Log
     Waimwork.Response
     Waimwork.Result
@@ -29,6 +30,7 @@ library
   ghc-options: -Wall
   build-depends:       
     aeson,
+    attoparsec,
     base >= 4.8 && < 5,
     blaze-builder,
     blaze-html,
@@ -91,6 +93,7 @@ test-suite test
     cryptonite,
     http-types,
     text,
+    time,
     wai,
     waimwork,
     QuickCheck

@@ -3,7 +3,7 @@ module Waimwork.Result
   ( result
   , unsafeResult
   , runResult
-  , simpleApplication
+  , resultApplication
   , resultMiddleware
   ) where
 
@@ -32,8 +32,8 @@ runResult :: IO Response -> IO Response
 runResult = handle (return . resultResponse)
 
 -- |Convert a simple function to an 'Application' using 'runResult'.
-simpleApplication :: (Request -> IO Response) -> Application
-simpleApplication = (.) ((>>=) . runResult)
+resultApplication :: (Request -> IO Response) -> Application
+resultApplication = (.) ((>>=) . runResult)
 
 -- |Catch and send any 'result' generated from the application (regardless of whether a response has already been sent).
 resultMiddleware :: Middleware
