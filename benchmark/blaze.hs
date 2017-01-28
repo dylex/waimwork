@@ -9,7 +9,7 @@ import qualified Text.Blaze.Renderer.Utf8 as BM
 
 import qualified Blaze.ByteString.Builder.Html.Utf8 as BU
 import qualified Blaze.ByteString.Builder.Html.Word as BW
-import qualified Dwebework.Blaze as DB
+import qualified Waimwork.Blaze as DB
 import qualified Text.Blaze as TB
 
 input :: [String]
