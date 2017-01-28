@@ -15,8 +15,8 @@ module Waimwork.Blaze
   , builderValue
   , textValue
   , lazyTextValue
-  , actionValue
   , (!?)
+  , routeActionValue
   ) where
 
 import qualified Data.ByteString as BS
@@ -25,7 +25,7 @@ import qualified Data.ByteString.Lazy as BSL
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Network.HTTP.Types (QueryLike(..), encodePathSegments, renderQueryBuilder, simpleQueryToQuery)
+import Network.HTTP.Types.URI (Query, encodePathSegments, renderQueryBuilder, simpleQueryToQuery)
 import qualified Text.Blaze.Internal as Markup
 import qualified Text.Blaze as B
 import qualified Web.Route.Invertible as R
@@ -92,11 +92,11 @@ lazyTextValue :: TL.Text -> B.AttributeValue
 lazyTextValue = unsafeBuilderValue . BW.fromHtmlEscapedLazyText
 
 -- |Efficiently render a 'R.RouteAction' URI and query as an attribute value.
-actionValue :: QueryLike q => R.RouteAction r a -> r -> q -> B.AttributeValue
-actionValue r a q = builderValue -- R.routeURL Nothing r a $ toQuery q
+routeActionValue :: R.RouteAction r a -> r -> Query -> B.AttributeValue
+routeActionValue r a q = builderValue -- R.routeURL Nothing r a $ toQuery q
   $  bh (R.requestHost rr)
   <> bp (R.requestPath rr)
-  <> renderQueryBuilder True ((simpleQueryToQuery $ R.paramsQuerySimple $ R.requestQuery rr) ++ toQuery q)
+  <> renderQueryBuilder True ((simpleQueryToQuery $ R.paramsQuerySimple $ R.requestQuery rr) ++ q)
   where
   rr = R.requestActionRoute r a
   bh [] = mempty
