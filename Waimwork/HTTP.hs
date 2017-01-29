@@ -1,4 +1,5 @@
 -- |Parsers and generators for HTTP header data.
+{-# LANGUAGE OverloadedStrings #-}
 module Waimwork.HTTP
   ( encodePathSegments'
   , encodePath'
@@ -7,6 +8,9 @@ module Waimwork.HTTP
   , unquoteHTTP
   , formatHTTPDate
   , parseHTTPDate
+  , ETag(..)
+  , renderETag
+  , parseETag
   ) where
 
 import           Control.Applicative ((<**>), (<|>))
@@ -84,3 +88,21 @@ formatHTTPDate = BSC.pack . formatTime defaultTimeLocale defaultDateFmt
 -- |Parse an HTTP date string in any valid format: rfc1123, rfc850, asctime
 parseHTTPDate :: ParseTime t => BS.ByteString -> Maybe t
 parseHTTPDate b = msum $ map (\f -> parseTimeM True defaultTimeLocale f s) dateFmts where s = BSC.unpack b
+
+-- |An HTTP entity tag
+data ETag
+  = WeakETag{ eTag :: !BS.ByteString }
+  | StrongETag{ eTag :: !BS.ByteString }
+  deriving (Eq)
+
+renderETag :: ETag -> BS.ByteString
+renderETag (WeakETag t) = "W/" <> quoteHTTP t
+renderETag (StrongETag t) = quoteHTTP t
+
+parseETag :: BS.ByteString -> ETag
+parseETag s
+  | Just w <- BSC.stripPrefix "W/" s = WeakETag $ unquoteHTTP w
+  | otherwise = StrongETag $ unquoteHTTP s
+
+instance Show ETag where
+  show = BSC.unpack . renderETag

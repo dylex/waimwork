@@ -8,6 +8,8 @@ flags:
     TypeCompose: false
     arrows: false
     hlist: false
+    invariant: false
+    lens: false
     partial-isomorphisms: false
     piso: false
   web-inv-route:
