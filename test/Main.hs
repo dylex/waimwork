@@ -58,10 +58,12 @@ checkCookie rnd ks ns vs = Q.label "cookie" $ Q.ioProperty $ do
 
 checkHTTP :: Q.Property
 checkHTTP = Q.label "HTTP"
-  $      HTTP.splitHTTP "  , \"abc\\\"\\\\\",, x" Q.=== Just ["abc\"\\", "x"]
+  $      HTTP.splitHTTP "  , \"abc\\\"\\\\\",, x" Q.=== ["abc\"\\", "x"]
   Q..&&. HTTP.unquoteHTTP "  \" \" " Q.=== " "
   Q..&&. (\s -> let b = BSC.pack s in HTTP.unquoteHTTP (HTTP.quoteHTTP b) Q.=== b)
   Q..&&. (\t -> let d = posixSecondsToUTCTime (fromInteger t) in HTTP.parseHTTPDate (HTTP.formatHTTPDate d) Q.=== Just d)
+  Q..&&. HTTP.parseETags "W/\"xyz\"   ,\"W/ \"\t" Q.=== HTTP.ETags [HTTP.WeakETag "xyz", HTTP.StrongETag "W/ "]
+  Q..&&. HTTP.parseETags "\t* " Q.=== HTTP.AnyETag
 
 main :: IO ()
 main = do

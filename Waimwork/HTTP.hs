@@ -1,5 +1,6 @@
 -- |Parsers and generators for HTTP header data.
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 module Waimwork.HTTP
   ( encodePathSegments'
   , encodePath'
@@ -9,17 +10,22 @@ module Waimwork.HTTP
   , formatHTTPDate
   , parseHTTPDate
   , ETag(..)
+  , ETags(..)
   , renderETag
   , parseETag
+  , renderETags
+  , parseETags
+  , matchETag
   ) where
 
-import           Control.Applicative ((<**>), (<|>))
+import           Control.Applicative ((<**>), (<|>), optional)
 import           Control.Monad (msum)
 import qualified Data.Attoparsec.ByteString as AP
 import qualified Data.Attoparsec.ByteString.Char8 as APC
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
+import           Data.Maybe (catMaybes)
 import           Data.Monoid ((<>))
 import qualified Data.Text as T
 import           Data.Time.Format (FormatTime, ParseTime, formatTime, parseTimeM, defaultTimeLocale)
@@ -51,18 +57,16 @@ token = AP.takeWhile1 $ AP.notInClass $ separators ++ ctls
 element :: AP.Parser BS.ByteString
 element = quotedString <|> token
 
-list :: AP.Parser BS.ByteString -> AP.Parser [BS.ByteString]
-list p = filter (not . BS.null)
-  <$> AP.sepBy (AP.option BS.empty p) (APC.skipSpace *> APC.char ',' <* APC.skipSpace)
-  <* AP.endOfInput
+list :: AP.Parser a -> AP.Parser [a]
+list p = catMaybes <$> AP.sepBy (APC.skipSpace *> optional p <* APC.skipSpace) (APC.char ',')
 
 -- |Parse a comma-separated list of quoted string or unquoted tokens
-splitHTTP :: BS.ByteString -> Maybe [BS.ByteString]
-splitHTTP = either (const Nothing) Just . AP.parseOnly (list element)
+splitHTTP :: BS.ByteString -> [BS.ByteString]
+splitHTTP = either (const []) id . AP.parseOnly (list element <* AP.endOfInput)
 
 -- |Attempt to parse a quoted string, otherwise just take the input as-is.
 unquoteHTTP :: BS.ByteString -> BS.ByteString
-unquoteHTTP s = either (const s) id $ AP.parseOnly (APC.skipSpace *> element <* APC.skipSpace) s
+unquoteHTTP s = either (const s) id $ AP.parseOnly (APC.skipSpace *> element <* APC.skipSpace <* AP.endOfInput) s
 
 -- |Quote a string.
 quoteHTTP :: BS.ByteString -> BS.ByteString
@@ -91,18 +95,45 @@ parseHTTPDate b = msum $ map (\f -> parseTimeM True defaultTimeLocale f s) dateF
 
 -- |An HTTP entity tag
 data ETag
-  = WeakETag{ eTag :: !BS.ByteString }
+  = WeakETag{ eTag :: !BS.ByteString } -- ^@W/...@
   | StrongETag{ eTag :: !BS.ByteString }
   deriving (Eq)
+
+instance Show ETag where
+  show = BSC.unpack . renderETag
+
+data ETags
+  = ETags [ETag]
+  | AnyETag -- ^@*@
+  deriving (Eq)
+
+instance Monoid ETags where
+  mempty = ETags []
+  mappend AnyETag _ = AnyETag
+  mappend _ AnyETag = AnyETag
+  mappend (ETags a) (ETags b) = ETags (mappend a b)
+
+instance Show ETags where
+  show = BSC.unpack . renderETags
+
+etag :: AP.Parser ETag
+etag = AP.option StrongETag (WeakETag <$ AP.string "W/") <*> quotedString
+
+parseETag :: BS.ByteString -> Either String ETag
+parseETag = AP.parseOnly (etag <* AP.endOfInput)
 
 renderETag :: ETag -> BS.ByteString
 renderETag (WeakETag t) = "W/" <> quoteHTTP t
 renderETag (StrongETag t) = quoteHTTP t
 
-parseETag :: BS.ByteString -> ETag
-parseETag s
-  | Just w <- BSC.stripPrefix "W/" s = WeakETag $ unquoteHTTP w
-  | otherwise = StrongETag $ unquoteHTTP s
+parseETags :: BS.ByteString -> ETags
+parseETags = either (const $ ETags []) id . AP.parseOnly
+  (APC.skipSpace *> (AnyETag <$ APC.char '*' <|> ETags <$> list etag) <* APC.skipSpace <* AP.endOfInput)
 
-instance Show ETag where
-  show = BSC.unpack . renderETag
+renderETags :: ETags -> BS.ByteString
+renderETags (ETags l) = BS.intercalate "," $ map renderETag l
+renderETags AnyETag = "*"
+
+matchETag :: ETag -> ETags -> Bool
+matchETag _ AnyETag = True
+matchETag e (ETags l) = e `elem` l
