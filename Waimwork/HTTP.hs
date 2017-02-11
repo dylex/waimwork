@@ -16,6 +16,8 @@ module Waimwork.HTTP
   , parseETag
   , renderETags
   , parseETags
+  , strongETagEq
+  , weakETagEq
   , matchETag
   ) where
 
@@ -26,6 +28,7 @@ import qualified Data.Attoparsec.ByteString.Char8 as APC
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
+import           Data.Function (on)
 import           Data.Maybe (catMaybes)
 import           Data.Monoid ((<>))
 import qualified Data.Text as T
@@ -106,7 +109,6 @@ instance Show ETag where
 data ETags
   = ETags [ETag]
   | AnyETag -- ^@*@
-  deriving (Eq)
 
 instance Monoid ETags where
   mempty = ETags []
@@ -138,6 +140,16 @@ renderETags :: ETags -> BS.ByteString
 renderETags (ETags l) = BS.intercalate "," $ map renderETag l
 renderETags AnyETag = "*"
 
-matchETag :: ETag -> ETags -> Bool
+-- |The strong etag comparison function.
+strongETagEq :: ETag -> ETag -> Bool
+strongETagEq (StrongETag x) (StrongETag y) = x == y
+strongETagEq _ _ = False
+
+-- |The weak etag comparison function.
+weakETagEq :: ETag -> ETag -> Bool
+weakETagEq = on (==) eTag
+
+-- |Test an ETag against a list.  Should be used as @'matchETag' . 'strongETagEq'@ or @'matchETag' . 'weakETagEq'@.
+matchETag :: (ETag -> Bool) -> ETags -> Bool
 matchETag _ AnyETag = True
-matchETag e (ETags l) = e `elem` l
+matchETag e (ETags l) = any e l
