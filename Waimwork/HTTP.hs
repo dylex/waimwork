@@ -12,6 +12,7 @@ module Waimwork.HTTP
   , ETag(..)
   , ETags(..)
   , renderETag
+  , etagParser
   , parseETag
   , renderETags
   , parseETags
@@ -118,6 +119,9 @@ instance Show ETags where
 
 etag :: AP.Parser ETag
 etag = AP.option StrongETag (WeakETag <$ AP.string "W/") <*> quotedString
+
+etagParser :: AP.Parser ETag
+etagParser = etag
 
 parseETag :: BS.ByteString -> Either String ETag
 parseETag = AP.parseOnly (etag <* AP.endOfInput)
