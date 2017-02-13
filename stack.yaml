@@ -1,17 +1,7 @@
-resolver: lts-7.18
+resolver: lts-8.0
 extra-deps:
-- invertible-0.2.0
 - web-inv-route-0.1.1
-- postgresql-typed-0.5.0
 flags:
-  invertible:
-    TypeCompose: false
-    arrows: false
-    hlist: false
-    invariant: false
-    lens: false
-    partial-isomorphisms: false
-    piso: false
   web-inv-route:
     snap: false
     happstack: false
