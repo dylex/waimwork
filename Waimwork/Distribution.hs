@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- |Cabal package distribution-related utilities
 module Waimwork.Distribution
   ( setGitVersion
@@ -23,6 +24,13 @@ import System.IO.Error (catchIOError)
 import System.Process (readProcess)
 import qualified Text.ParserCombinators.ReadP as ReadP
 import Text.Read (readMaybe)
+
+#if MIN_VERSION_Cabal(2,0,0)
+import Distribution.Version (mkVersion')
+#else
+mkVersion' :: Version -> Version
+mkVersion' = id
+#endif
 
 run :: Verbosity -> PackageDescription -> LocalBuildInfo -> String -> [String] -> IO ()
 run verb desc lbi cmd args = do
@@ -57,7 +65,7 @@ setGitVersion pfx args uhooks = uhooks
     let s v = g{ packageDescription = d{ package = p{ pkgVersion = v } } }
         d = packageDescription g
         p = package d
-    d' <- maybe g s <$> gitDescribe pfx args
+    d' <- maybe g (s . mkVersion') <$> gitDescribe pfx args
     confHook uhooks (d', i) f
   }
 
