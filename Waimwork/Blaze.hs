@@ -22,10 +22,10 @@ module Waimwork.Blaze
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as BSL
-import Data.Monoid ((<>))
+import           Data.Monoid ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Network.HTTP.Types.URI (Query, encodePathSegments, renderQueryBuilder, simpleQueryToQuery)
+import           Network.HTTP.Types.URI (Query, encodePathSegments, renderQueryBuilder, simpleQueryToQuery)
 import qualified Text.Blaze.Internal as Markup
 import qualified Text.Blaze as B
 import qualified Web.Route.Invertible as R
