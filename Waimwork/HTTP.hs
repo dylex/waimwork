@@ -109,6 +109,7 @@ instance Show ETag where
 data ETags
   = ETags [ETag]
   | AnyETag -- ^@*@
+  deriving (Eq)
 
 instance Monoid ETags where
   mempty = ETags []
