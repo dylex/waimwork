@@ -24,6 +24,7 @@ library
     Waimwork.Log
     Waimwork.Response
     Waimwork.Result
+    Waimwork.Static
     Waimwork.Warp
   other-modules:       
   default-language: Haskell2010
