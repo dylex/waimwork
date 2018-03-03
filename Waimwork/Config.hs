@@ -294,3 +294,16 @@ instance JSON.ToJSON Value where
   toEncoding (Sub c) = JSON.toEncoding c
   toEncoding v = JSON.toEncoding $ JSON.toJSON v
 
+instance JSON.FromJSON Config where
+  parseJSON j = topConfig <$> JSON.parseJSON j
+
+instance JSON.FromJSON ConfigMap where
+  parseJSON j = ConfigMap . HM.foldlWithKey' (\m k v -> HM.insert (TE.encodeUtf8 k) v m) HM.empty <$> JSON.parseJSON j
+
+instance JSON.FromJSON Value where
+  parseJSON JSON.Null = return Empty
+  parseJSON (JSON.Bool b) = return $ Boolean b
+  parseJSON (JSON.String s) = return $ String $ TE.encodeUtf8 s
+  parseJSON j@(JSON.Number _) = Integer <$> JSON.parseJSON j
+  parseJSON j@(JSON.Array _) = List <$> JSON.parseJSONList j
+  parseJSON j@(JSON.Object _) = Sub <$> JSON.parseJSON j
