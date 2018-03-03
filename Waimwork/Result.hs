@@ -1,7 +1,8 @@
 -- |An abort-like way to interrupt a wai application with an early result, in IO.
 {-# LANGUAGE FlexibleContexts #-}
 module Waimwork.Result
-  ( result
+  ( Application
+  , result
   , unsafeResult
   , runResult
   , resultApplication
@@ -16,9 +17,12 @@ import Control.Monad.Trans.Control (MonadBaseControl)
 import Data.Typeable (Typeable)
 import Network.HTTP.Types.Header (ResponseHeaders)
 import Network.HTTP.Types.Status (Status)
-import Network.Wai (Middleware, Request, Response, ResponseReceived, responseStatus, responseBuilder)
+import Network.Wai (Request, Response, ResponseReceived, responseStatus, responseBuilder)
 import Web.Route.Invertible (RouteMap)
 import Web.Route.Invertible.Wai (routeWaiError)
+
+-- |A 'Network.Wai.Application' in an arbitrary monad
+type Application m = Request -> (Response -> IO ResponseReceived) -> m ResponseReceived
 
 newtype Result = Result { resultResponse :: Response } deriving (Typeable)
 instance Show Result where
@@ -40,20 +44,20 @@ runResult :: MonadBaseControl IO m => m Response -> m Response
 runResult = handle (return . resultResponse)
 
 -- |Convert a simple function to an 'Application' using 'runResult'.
-resultApplication :: MonadBaseControl IO m => (Request -> m Response) -> Request -> (Response -> IO ResponseReceived) -> m ResponseReceived
+resultApplication :: MonadBaseControl IO m => (Request -> m Response) -> Application m
 resultApplication f q r = liftBase . r =<< runResult (f q)
 
 -- |Combine 'Web.Route.Invertible.Wai.routeWaiError' with 'resultApplication'
-routeResultApplicationError :: MonadBaseControl IO m => (Status -> ResponseHeaders -> Request -> m Response) -> RouteMap (Request -> m Response) -> Request -> (Response -> IO ResponseReceived) -> m ResponseReceived
+routeResultApplicationError :: MonadBaseControl IO m => (Status -> ResponseHeaders -> Request -> m Response) -> RouteMap (Request -> m Response) -> Application m
 routeResultApplicationError e m = resultApplication $ routeWaiError e m
 
 -- |Combine 'Web.Route.Invertible.Wai.routeWaiApplication' with 'resultApplication'
-routeResultApplication :: MonadBaseControl IO m => RouteMap (Request -> m Response) -> Request -> (Response -> IO ResponseReceived) -> m ResponseReceived
+routeResultApplication :: MonadBaseControl IO m => RouteMap (Request -> m Response) -> Application m
 routeResultApplication = routeResultApplicationError $ \s h _ -> return $ responseBuilder s h mempty
 
 -- |Catch and send any 'result' generated from the application (regardless of whether a response has already been sent).
-resultMiddleware :: Middleware
+resultMiddleware :: MonadBaseControl IO m => Application m -> Application m
 resultMiddleware app req send =
   handle
-    (send . resultResponse)
+    (liftBase . send . resultResponse)
     (app req send)

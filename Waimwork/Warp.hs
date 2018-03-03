@@ -4,6 +4,7 @@
 module Waimwork.Warp
   ( runWarpSettings
   , runWarp
+  , runWaimwork
   ) where
 
 import qualified Data.ByteString.Lazy as BSL
@@ -15,8 +16,8 @@ import qualified Network.Wai.Handler.WarpTLS as WarpTLS
 #endif
 
 import qualified Waimwork.Config as C
-import Waimwork.Log (Logs, accessLogMiddleware, logError)
-import Waimwork.Result (resultMiddleware)
+import Waimwork.Log (Logs, initLogs, accessLogMiddleware, logError)
+import Waimwork.Result (resultMiddleware, resultApplication)
 
 -- |Run warp according to the given configuration settings.
 -- Supports the following keys for warp settings:
@@ -77,3 +78,10 @@ runWarpSettings set conf logs app =
 -- |@'runWarpSettings' 'Warp.defaultSettings'@
 runWarp :: C.Config -> Logs -> Wai.Application -> IO ()
 runWarp = runWarpSettings Warp.defaultSettings
+
+-- |Use \"log\" and \"http\" sections of the config file for 'runWarp'.
+runWaimwork :: C.Config -> (Wai.Request -> IO Wai.Response) -> IO ()
+runWaimwork conf app = do
+  logs <- initLogs (conf C.! "log")
+  -- we already have a resultMiddleware above, but I feel like we shouldn't... regardless, it's safe to catch here first
+  runWarp (conf C.! "http") logs (resultApplication app)
