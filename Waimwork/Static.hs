@@ -13,6 +13,7 @@ import System.IO.Error (isDoesNotExistError)
 import Waimwork.HTTP (parseHTTPDate, formatHTTPDate)
 
 -- |Serve a static file by path, returning 304 depending on modification time, and adding a last-modified header.
+-- Note that warp now does this itself.
 staticFileResponse :: Request -> ResponseHeaders -> FilePath -> IO Response
 staticFileResponse req headers path =
   maybe

@@ -2,6 +2,7 @@
 module Waimwork.Blaze
   ( -- * Converting values to markup
     unsafeBuilder
+  , preEscapedBuilder
   , builder
   , byteString
   , lazyByteString
@@ -36,6 +37,10 @@ import qualified Blaze.ByteString.Builder.Html.Word as BW
 -- |Insert a 'BSB.Builder'. See 'B.unsafeByteString' for caveats.
 unsafeBuilder :: BSB.Builder -> B.Markup
 unsafeBuilder = B.unsafeLazyByteString . BSB.toLazyByteString
+
+-- |Same as 'unsafeBuilder' but marked as pre-escaped (e.g., for script tags and others marked external that suppress unescaped content).
+preEscapedBuilder :: BSB.Builder -> B.Markup
+preEscapedBuilder b = Markup.Content (Markup.PreEscaped $ foldMap Markup.ByteString $ BSL.toChunks $ BSB.toLazyByteString b) ()
 
 -- |Render a pre-encoded (but not pre-escaped) 'BS.ByteString'.
 -- The difference between this and 'B.unsafeByteString' is this does entity escaping.
