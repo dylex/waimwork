@@ -54,7 +54,7 @@ import Data.Foldable (fold)
 import qualified Data.HashMap.Strict as HM
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Maybe (fromMaybe)
-import Data.Monoid ((<>))
+import Data.Semigroup (Semigroup((<>)))
 import Data.String (IsString(..))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -69,7 +69,7 @@ import qualified Text.Parsec.Token as PT
 -- |The string representation of a configuration KEY.
 type Key = BS.ByteString
 -- |A (dot-separated) KEY path to a configuration value.
-newtype Path = Path { pathList :: [Key] } deriving (Monoid)
+newtype Path = Path { pathList :: [Key] } deriving (Semigroup, Monoid)
 
 -- |Convert a 'Path' to a dot-delimited KEY.
 pathKey :: Path -> Key
@@ -117,7 +117,7 @@ data Value
 
 -- |A single layer of configuration
 newtype ConfigMap = ConfigMap { unConfigMap :: HM.HashMap Key Value }
-  deriving (Typeable, Eq, Monoid, Show)
+  deriving (Typeable, Eq, Semigroup, Monoid, Show)
 
 -- |A loaded configuration or sub-configuration
 data Config = Config
@@ -139,16 +139,19 @@ unionValue p v1 v2
 unionConfig :: Path -> ConfigMap -> ConfigMap -> ConfigMap
 unionConfig p (ConfigMap m1) (ConfigMap m2) = ConfigMap $ HM.foldrWithKey (\k -> HM.insertWith (flip $ unionValue (pathSnoc p k)) k) m1 m2
 
--- |Merge two configs, throwing 'ConflictError' on conflicts
-instance Monoid Config where
-  mempty = topConfig mempty
-  Config (Path p1) m1 `mappend` Config (Path p2) m2 = Config p m where
+instance Semigroup Config where
+  Config (Path p1) m1 <> Config (Path p2) m2 = Config p m where
     (p', (p1', p2')) = cpfx p1 p2
     p = Path p'
     m = unionConfig p (nest m1 p1') (nest m2 p2')
     cpfx (a:al) (b:bl) | a == b = first (a :) $ cpfx al bl
     cpfx al bl = ([], (al, bl))
     nest = foldr (\k -> ConfigMap . HM.singleton k . Sub)
+
+-- |Merge two configs, throwing 'ConflictError' on conflicts
+instance Monoid Config where
+  mempty = topConfig mempty
+  mappend = (<>)
 
 lookup :: Path -> ConfigMap -> Value
 lookup (Path []) m = Sub m

@@ -30,7 +30,7 @@ import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
 import           Data.Function (on)
 import           Data.Maybe (catMaybes)
-import           Data.Monoid ((<>))
+import           Data.Semigroup (Semigroup((<>)))
 import qualified Data.Text as T
 import           Data.Time.Format (FormatTime, ParseTime, formatTime, parseTimeM, defaultTimeLocale)
 import           Network.HTTP.Types (Query, encodePathSegments, renderQueryBuilder)
@@ -111,11 +111,14 @@ data ETags
   | AnyETag -- ^@*@
   deriving (Eq)
 
+instance Semigroup ETags where
+  AnyETag <> _ = AnyETag
+  _ <> AnyETag = AnyETag
+  ETags a <> ETags b = ETags (a <> b)
+
 instance Monoid ETags where
   mempty = ETags []
-  mappend AnyETag _ = AnyETag
-  mappend _ AnyETag = AnyETag
-  mappend (ETags a) (ETags b) = ETags (mappend a b)
+  mappend = (<>)
 
 instance Show ETags where
   show = BSC.unpack . renderETags
