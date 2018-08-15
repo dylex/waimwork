@@ -13,7 +13,6 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     
-    Blaze.ByteString.Builder.Html.Word
     Waimwork.Blaze
     Waimwork.Config
     Waimwork.Cookie

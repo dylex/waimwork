@@ -20,6 +20,8 @@ module Waimwork.Blaze
   , routeActionValue
   ) where
 
+import qualified Blaze.ByteString.Builder.Html.Utf8 as BU
+import qualified Blaze.ByteString.Builder.Html.Word as BW
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as BSL
@@ -31,8 +33,6 @@ import qualified Text.Blaze.Internal as Markup
 import qualified Text.Blaze as B
 import qualified Web.Route.Invertible as R
 import qualified Web.Route.Invertible.Internal as R
-
-import qualified Blaze.ByteString.Builder.Html.Word as BW
 
 -- |Insert a 'BSB.Builder'. See 'B.unsafeByteString' for caveats.
 unsafeBuilder :: BSB.Builder -> B.Markup
@@ -64,12 +64,12 @@ builder = lazyByteString . BSB.toLazyByteString
 -- |Render text.
 -- Identical to 'B.text' but about twice as fast.
 text :: T.Text -> B.Markup
-text = unsafeBuilder . BW.fromHtmlEscapedText
+text = unsafeBuilder . BU.fromHtmlEscapedText
 
 -- |Render lazy text.
 -- Identical to 'B.lazyText' but about twice as fast.
 lazyText :: TL.Text -> B.Markup
-lazyText = unsafeBuilder . BW.fromHtmlEscapedLazyText
+lazyText = unsafeBuilder . BU.fromHtmlEscapedLazyText
 
 -- |Insert a 'BSB.Builder' as an attribute value. See 'B.unsafeByteString' for caveats.
 unsafeBuilderValue :: BSB.Builder -> B.AttributeValue
@@ -93,12 +93,12 @@ builderValue = lazyByteStringValue . BSB.toLazyByteString
 -- |Render text as an attribute value.
 -- Identical to 'B.textValue' but about twice as fast.
 textValue :: T.Text -> B.AttributeValue
-textValue = unsafeBuilderValue . BW.fromHtmlEscapedText
+textValue = unsafeBuilderValue . BU.fromHtmlEscapedText
 
 -- |Render lazy text as an attribute value.
 -- Identical to 'B.lazyTextValue' but about twice as fast.
 lazyTextValue :: TL.Text -> B.AttributeValue
-lazyTextValue = unsafeBuilderValue . BW.fromHtmlEscapedLazyText
+lazyTextValue = unsafeBuilderValue . BU.fromHtmlEscapedLazyText
 
 -- |Efficiently render a 'R.RouteAction' URI and query as an attribute value.
 routeActionValue :: R.RouteAction r a -> r -> Query -> B.AttributeValue
