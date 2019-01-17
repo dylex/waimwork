@@ -62,7 +62,7 @@ builder :: BSB.Builder -> B.Markup
 builder = lazyByteString . BSB.toLazyByteString
 
 -- |Render text.
--- Identical to 'B.text' but about twice as fast.
+-- Identical to 'B.text'.
 text :: T.Text -> B.Markup
 text = unsafeBuilder . BU.fromHtmlEscapedText
 

@@ -17,6 +17,9 @@ import Distribution.Simple.BuildPaths (exeExtension)
 import Distribution.Simple.LocalBuildInfo (LocalBuildInfo(buildDir))
 import Distribution.Simple.Setup (fromFlag, buildVerbosity, buildArgs)
 import Distribution.Simple.Utils (rawSystemExitWithEnv)
+#if MIN_VERSION_Cabal(2,4,0)
+import Distribution.System (buildPlatform)
+#endif
 import Distribution.Verbosity (Verbosity)
 import System.Directory (getCurrentDirectory)
 import System.FilePath ((<.>), (</>))
@@ -36,7 +39,11 @@ run :: Verbosity -> PackageDescription -> LocalBuildInfo -> String -> [String] -
 run verb desc lbi cmd args = do
   env <- getEnvironment
   cwd <- getCurrentDirectory
-  rawSystemExitWithEnv verb (buildDir lbi </> cmd </> cmd <.> exeExtension) args
+  rawSystemExitWithEnv verb (buildDir lbi </> cmd </> cmd <.> exeExtension
+#if MIN_VERSION_Cabal(2,4,0)
+    buildPlatform
+#endif
+    ) args
     $ (pkgPathEnvVar desc "datadir", cwd </> dataDir desc)
     : (pkgPathEnvVar desc "sysconfdir", cwd)
     : env
