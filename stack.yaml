@@ -1,8 +1,8 @@
-resolver: lts-13.3
+resolver: lts-13.26
 flags:
   web-inv-route:
     snap: false
     happstack: false
 extra-deps:
-- postgresql-typed-0.5.3.0
+- postgresql-typed-0.6
 - web-inv-route-0.1.2.2

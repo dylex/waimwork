@@ -50,7 +50,7 @@ library
     network,
     network-uri,
     parsec,
-    postgresql-typed,
+    postgresql-typed >= 0.6,
     process,
     resource-pool,
     template-haskell,

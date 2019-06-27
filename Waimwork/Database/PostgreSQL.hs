@@ -1,6 +1,7 @@
 -- |Database interface based on postgresql-typed
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TupleSections #-}
 module Waimwork.Database.PostgreSQL
   (
   -- * Connection management
@@ -25,15 +26,16 @@ module Waimwork.Database.PostgreSQL
   , pgTransaction
   ) where
 
-import Control.Monad (unless)
+import           Control.Monad (unless)
 import qualified Data.ByteString.Lazy as BSL
-import Data.Maybe (fromMaybe, isJust)
-import Data.Pool (Pool, withResource, createPool, destroyAllResources)
-import Database.PostgreSQL.Typed.Protocol (PGDatabase(..), defaultPGDatabase, PGConnection, pgConnect, pgDisconnect, pgSimpleQueries_, pgTransaction)
-import Database.PostgreSQL.Typed.Query (PGQuery, PGSimpleQuery, pgRunQuery, pgExecute, pgQuery)
-import Database.PostgreSQL.Typed.TH (useTPGDatabase)
+import           Data.Maybe (fromMaybe)
+import           Data.Pool (Pool, withResource, createPool, destroyAllResources)
+import           Data.Word (Word16)
+import           Database.PostgreSQL.Typed.Protocol (PGDatabase(..), defaultPGDatabase, PGConnection, pgConnect, pgDisconnect, pgSimpleQueries_, pgTransaction)
+import           Database.PostgreSQL.Typed.Query (PGQuery, PGSimpleQuery, pgRunQuery, pgExecute, pgQuery)
+import           Database.PostgreSQL.Typed.TH (useTPGDatabase)
 import qualified Language.Haskell.TH as TH
-import Network (PortID(..))
+import           Network.Socket (SockAddr(SockAddrUnix))
 
 import qualified Waimwork.Config as C
 
@@ -48,17 +50,17 @@ import qualified Waimwork.Config as C
 --   * debug [false]
 configPGDatabase :: C.Config -> PGDatabase
 configPGDatabase conf = defaultPGDatabase
-  { pgDBHost = fromMaybe "localhost" host
-  , pgDBPort = if isJust host
-      then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
-      else UnixSocket (fromMaybe "/tmp/.s.PGSQL.5432" $ conf C.! "sock")
+  { pgDBAddr = maybe
+      (Right $ SockAddrUnix $ fromMaybe ("/tmp/.s.PGSQL." ++ port) $ conf C.! "sock")
+      (Left . (, port))
+      $ conf C.! "host"
   , pgDBName = fromMaybe user $ conf C.! "db"
   , pgDBUser = user
   , pgDBPass = fromMaybe "" $ conf C.! "pass"
   , pgDBDebug = fromMaybe False $ conf C.! "debug"
   }
   where
-  host = conf C.! "host"
+  port = show $ fromMaybe (5432 :: Word16) $ conf C.! "port"
   user = conf C.! "user"
 
 -- |A 'Pool' of database connections.
