@@ -39,7 +39,8 @@ import Waimwork.Result (resultMiddleware, resultApplication)
 -- Uses 'resultMiddleware', 'accessLogMiddleware' and 'logError' to generate logs.
 runWarpSettings :: Warp.Settings -> C.Config -> Logs -> Wai.Application -> IO ()
 runWarpSettings set conf logs app =
-  run (conf C.! "ssl.key") (either id return $ conf C.! "ssl.cert")
+  run                                         (conf C.! "ssl.key")
+                         (either id return <$> conf C.! "ssl.cert")
     ( Warp.setPort                            (conf C.! "port")
     $ maybe id (Warp.setHost . fromString)    (conf C.! "host")
     $ maybe id Warp.setTimeout                (conf C.! "timeout")
