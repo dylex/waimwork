@@ -25,14 +25,13 @@ import qualified Blaze.ByteString.Builder.Html.Word as BW
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as BSL
-import           Data.Monoid ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import           Network.HTTP.Types.URI (Query, encodePathSegments, renderQueryBuilder, simpleQueryToQuery)
+import           Network.HTTP.Types.URI (Query)
 import qualified Text.Blaze.Internal as Markup
 import qualified Text.Blaze as B
 import qualified Web.Route.Invertible as R
-import qualified Web.Route.Invertible.Internal as R
+import qualified Web.Route.Invertible.Render as R
 
 -- |Insert a 'BSB.Builder'. See 'B.unsafeByteString' for caveats.
 unsafeBuilder :: BSB.Builder -> B.Markup
@@ -103,16 +102,7 @@ lazyTextValue = unsafeBuilderValue . BU.fromHtmlEscapedLazyText
 -- |Efficiently render a 'R.RouteAction' URI and query as an attribute value.
 routeActionValue :: R.RouteAction r a -> r -> Query -> B.AttributeValue
 routeActionValue r a q = builderValue -- R.routeURL Nothing r a $ toQuery q
-  $  bh (R.requestHost rr)
-  <> bp (R.requestPath rr)
-  <> renderQueryBuilder True ((simpleQueryToQuery $ R.paramsQuerySimple $ R.requestQuery rr) ++ q)
-  where
-  rr = R.requestActionRoute r a
-  bh [] = mempty
-  bh [x] = BSB.byteString x
-  bh (x:l) = bh l <> BSB.char8 '.' <> BSB.byteString x
-  bp [] = BSB.char8 '/'
-  bp p = encodePathSegments p
+  $ R.renderRequestBuilder (R.requestActionRoute r a) q
 
 (!?) :: Markup.Attributable h => h -> Maybe B.Attribute -> h
 h !? Nothing = h

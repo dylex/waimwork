@@ -30,7 +30,6 @@ import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
 import           Data.Function (on)
 import           Data.Maybe (catMaybes)
-import           Data.Semigroup (Semigroup((<>)))
 import qualified Data.Text as T
 import           Data.Time.Format (FormatTime, ParseTime, formatTime, parseTimeM, defaultTimeLocale)
 import           Network.HTTP.Types (Query, encodePathSegments, renderQueryBuilder)

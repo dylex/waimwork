@@ -17,7 +17,6 @@ module Waimwork.Log
 import Control.Exception (Exception, SomeException(..), finally)
 import qualified Data.ByteString.Char8 as BSC
 import Data.Maybe (fromMaybe, catMaybes)
-import Data.Monoid ((<>))
 import Data.Time.Clock (UTCTime, getCurrentTime, diffUTCTime)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Data.Time.LocalTime (ZonedTime, utcToLocalZonedTime)

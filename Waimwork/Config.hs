@@ -54,7 +54,6 @@ import Data.Foldable (fold)
 import qualified Data.HashMap.Strict as HM
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Maybe (fromMaybe)
-import Data.Semigroup (Semigroup((<>)))
 import Data.String (IsString(..))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE

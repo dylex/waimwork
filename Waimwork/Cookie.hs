@@ -19,7 +19,6 @@ import Data.ByteArray.Encoding (convertToBase, convertFromBase, Base(Base64URLUn
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as BSL
-import Data.Monoid ((<>))
 import Data.Time.Clock (UTCTime)
 import Network.HTTP.Types.Header (Header, hCookie)
 import qualified Network.Wai as Wai
