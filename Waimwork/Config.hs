@@ -17,6 +17,7 @@
 --
 -- Any \'#\' comments out the rest of the current line, but otherwise whitespace and newlines are ignored.
 -- This configuration format is based on the configurator package and should be generally compatible.
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -47,6 +48,9 @@ import Control.Applicative ((<|>))
 import Control.Arrow (first, (***))
 import Control.Exception (Exception, throw)
 import Control.Monad ((<=<), guard)
+#if MIN_VERSION_aeson(2,0,0)
+import qualified Data.Aeson.Key as JSON.Key
+#endif
 import qualified Data.Aeson.Types as JSON
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
@@ -281,9 +285,17 @@ instance JSON.ToJSON Config where
   toJSON = JSON.toJSON . configMap
   toEncoding = JSON.toEncoding . configMap
 
+#if MIN_VERSION_aeson(2,0,0)
+jsonKey :: T.Text -> JSON.Key.Key
+jsonKey = JSON.Key.fromText
+#else
+jsonKey :: T.Text -> T.Text
+jsonKey = id
+#endif
+
 instance JSON.ToJSON ConfigMap where
-  toJSON = JSON.object . map (TE.decodeUtf8 *** JSON.toJSON) . HM.toList . unConfigMap
-  toEncoding = JSON.pairs . HM.foldrWithKey (\k v -> (TE.decodeUtf8 k JSON..= v <>)) mempty . unConfigMap
+  toJSON = JSON.object . map (jsonKey . TE.decodeUtf8 *** JSON.toJSON) . HM.toList . unConfigMap
+  toEncoding = JSON.pairs . HM.foldrWithKey (\k v -> (jsonKey (TE.decodeUtf8 k) JSON..= v <>)) mempty . unConfigMap
 
 instance JSON.ToJSON Value where
   toJSON Empty = JSON.Null
