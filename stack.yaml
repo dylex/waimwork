@@ -1,7 +1,7 @@
-resolver: lts-19.6
+resolver: lts-24.59
 flags:
   web-inv-route:
     snap: false
     happstack: false
 extra-deps:
-- web-inv-route-0.1.3.2
+- web-inv-route-0.1.3.3

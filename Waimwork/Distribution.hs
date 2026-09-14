@@ -14,7 +14,7 @@ import Distribution.PackageDescription (PackageDescription(package, dataDir), Ge
 import Distribution.Simple (UserHooks(confHook, buildHook))
 import Distribution.Simple.Build.PathsModule (pkgPathEnvVar)
 import Distribution.Simple.BuildPaths (exeExtension)
-import Distribution.Simple.LocalBuildInfo (LocalBuildInfo(buildDir))
+import Distribution.Simple.LocalBuildInfo (LocalBuildInfo, buildDir)
 import Distribution.Simple.Setup (fromFlag, buildVerbosity, buildArgs)
 import Distribution.Simple.Utils (rawSystemExitWithEnv)
 #if MIN_VERSION_Cabal(2,4,0)
